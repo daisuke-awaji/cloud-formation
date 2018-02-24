@@ -1,0 +1,470 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create SNS Topic for t4 enviroment
+#################################### input parameter
+Parameters:
+  ## キューの名称 ##
+  # 作業所Net用キュー
+  SqsQueueNet:
+    Description: Input SQS sagyosyo net queue name
+    Type: String
+    MinLength: '1'
+    MaxLength: '50'
+    Default: t4_sqs_queue_net
+  # SmartDocs用キュー
+  SqsQueueSmartdocs:
+    Description: Input SQS smartdocs queue name
+    Type: String
+    MinLength: '1'
+    MaxLength: '50'
+    Default: t4_sqs_queue_smartdocs
+  # stacc用キュー
+  SqsQueueStacc:
+    Description: Input SQS stacc queue name
+    Type: String
+    MinLength: '1'
+    MaxLength: '50'
+    Default: t4_sqs_queue_stacc
+
+  ## SNSのトピック名 ##
+  # 企業情報提供用トピック名
+  TopicCompanyName:
+    Description: Input SNS topic name of sns_topic_company
+    Type: String
+    MinLength: '1'
+    MaxLength: '50'
+    Default: t4_sns_topic_company
+  # 大成建設個別サービス企業利用状況提供用トピック名
+  TopicCompanytaiSeiservicesName:
+    Description: Input SNS topic name of sns_topic_companyTaiseiServices
+    Type: String
+    MinLength: '1'
+    MaxLength: '50'
+    Default: t4_sns_topic_companyTaiseiService
+  # ユーザ情報提供用トピック名
+  TopicUserName:
+    Description: Input SNS topic name of sns_topic_user
+    Type: String
+    MinLength: '1'
+    MaxLength: '50'
+    Default: t4_sns_topic_user
+  # ユーザ情報提供（ユーザがどのサービスを利用するか）用トピック名
+  TopicAccesspointName:
+    Description: Input SNS topic name of sns_topic_accesspoint
+    Type: String
+    MinLength: '1'
+    MaxLength: '50'
+    Default: t4_sns_topic_accessPoint
+  # 支店情報提供用トピック名
+  TopicBranchName:
+    Description: Input SNS topic name of sns_topic_accesspoint
+    Type: String
+    MinLength: '1'
+    MaxLength: '50'
+    Default: t4_sns_topic_branch
+  # オーナー登録企業情報提供用トピック名
+  TopicPartnerCompanyName:
+    Description: Input SNS topic name of sns_topic_partnercompany
+    Type: String
+    MinLength: '1'
+    MaxLength: '50'
+    Default: t4_sns_topic_partnerCompany
+  # 従業員情報提供用トピック名
+  TopicWorkerName:
+    Description: Input SNS topic name of sns_topic_worker
+    Type: String
+    MinLength: '1'
+    MaxLength: '50'
+    Default: t4_sns_topic_worker
+  # プロジェクト情報提供用トピック名
+  TopicProjectName:
+    Description: Input SNS topic name of sns_topic_project
+    Type: String
+    MinLength: '1'
+    MaxLength: '50'
+    Default: t4_sns_topic_project
+  # 元請招待ユーザ提供用トピック名
+  TopicProjectUserName:
+    Description: Input SNS topic name of sns_topic_projectUser
+    Type: String
+    MinLength: '1'
+    MaxLength: '50'
+    Default: t4_sns_topic_projectUser
+  # 一次請企業情報提供用トピック名
+  TopicProjectPartnerName:
+    Description: Input SNS topic name of sns_topic_projectPartner
+    Type: String
+    MinLength: '1'
+    MaxLength: '50'
+    Default: t4_sns_topic_projectPartner
+  # 編成、作業員名簿提供用トピック名
+  TopicGreenfileName:
+    Description: Input SNS topic name of sns_topic_greenfiles
+    Type: String
+    MinLength: '1'
+    MaxLength: '50'
+    Default: t4_sns_topic_greenfile
+#################################### create sns topic & sqs queue resource
+Resources:
+  # 作業所ネット用トピック
+  QueueNet:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName: !Ref SqsQueueNet
+  # 作業所ネット用トピックポリシー
+  # Company, Companytaiseiservices, User, Accesspointのトピックからの受信を許可する
+  QueueNetPolicy:
+    Type: 'AWS::SQS::QueuePolicy'
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Id: QueueNetPolicy
+        Statement:
+          - Sid: Allow-SendMessage-To-Both-Queues-From-SNS-Topic-Company
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 'sqs:SendMessage'
+            Resource: '*'
+            Condition:
+              ArnEquals:
+                'aws:SourceArn': !Ref TopicCompany
+          - Sid: Allow-SendMessage-To-Both-Queues-From-SNS-Topic-Companytaiseiservices
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 'sqs:SendMessage'
+            Resource: '*'
+            Condition:
+              ArnEquals:
+                'aws:SourceArn': !Ref TopicCompanytaiseiservices
+          - Sid: Allow-SendMessage-To-Both-Queues-From-SNS-Topic-User
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 'sqs:SendMessage'
+            Resource: '*'
+            Condition:
+              ArnEquals:
+                'aws:SourceArn': !Ref TopicUser
+          - Sid: Allow-SendMessage-To-Both-Queues-From-SNS-Topic-Accesspoint
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 'sqs:SendMessage'
+            Resource: '*'
+            Condition:
+              ArnEquals:
+                'aws:SourceArn': !Ref TopicAccesspoint
+      Queues:
+        - !Ref QueueNet
+
+  # Smartdocs用トピック
+  QueueSmartDocs:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName: !Ref SqsQueueSmartdocs
+  # Smartdocs用トピックポリシー
+  # Company, User, Project, ProjectUser, ProjectPartnerのトピックからの受信を許可する
+  QueueSmartDocsPolicy:
+    Type: 'AWS::SQS::QueuePolicy'
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Id: QueueSmartDocsPolicy
+        Statement:
+          - Sid: Allow-SendMessage-To-Both-Queues-From-SNS-Topic-Company
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 'sqs:SendMessage'
+            Resource: '*'
+            Condition:
+              ArnEquals:
+                'aws:SourceArn': !Ref TopicCompany
+          - Sid: Allow-SendMessage-To-Both-Queues-From-SNS-Topic-User
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 'sqs:SendMessage'
+            Resource: '*'
+            Condition:
+              ArnEquals:
+                'aws:SourceArn': !Ref TopicUser
+          - Sid: Allow-SendMessage-To-Both-Queues-From-SNS-Topic-Project
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 'sqs:SendMessage'
+            Resource: '*'
+            Condition:
+              ArnEquals:
+                'aws:SourceArn': !Ref TopicProject
+          - Sid: Allow-SendMessage-To-Both-Queues-From-SNS-Topic-ProjectUser
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 'sqs:SendMessage'
+            Resource: '*'
+            Condition:
+              ArnEquals:
+                'aws:SourceArn': !Ref TopicProjectUser
+          - Sid: Allow-SendMessage-To-Both-Queues-From-SNS-Topic-ProjectPartner
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 'sqs:SendMessage'
+            Resource: '*'
+            Condition:
+              ArnEquals:
+                'aws:SourceArn': !Ref TopicProjectPartner
+      Queues:
+        - !Ref QueueSmartDocs
+
+  # Stacc用トピック
+  QueueStacc:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName: !Ref SqsQueueStacc
+  # Stacc用トピックポリシー
+  # Company, User, Branch, Worker, Project, ProjectUserのトピックからの受信を許可する
+  QueueStaccPolicy:
+    Type: 'AWS::SQS::QueuePolicy'
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Id: QueueStaccPolicy
+        Statement:
+          - Sid: Allow-SendMessage-To-Both-Queues-From-SNS-Topic-Company
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 'sqs:SendMessage'
+            Resource: '*'
+            Condition:
+              ArnEquals:
+                'aws:SourceArn': !Ref TopicCompany
+          - Sid: Allow-SendMessage-To-Both-Queues-From-SNS-Topic-User
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 'sqs:SendMessage'
+            Resource: '*'
+            Condition:
+              ArnEquals:
+                'aws:SourceArn': !Ref TopicUser
+          - Sid: Allow-SendMessage-To-Both-Queues-From-SNS-Topic-Branch
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 'sqs:SendMessage'
+            Resource: '*'
+            Condition:
+              ArnEquals:
+                'aws:SourceArn': !Ref TopicBranch
+          - Sid: Allow-SendMessage-To-Both-Queues-From-SNS-Topic-Worker
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 'sqs:SendMessage'
+            Resource: '*'
+            Condition:
+              ArnEquals:
+                'aws:SourceArn': !Ref TopicWorker
+          - Sid: Allow-SendMessage-To-Both-Queues-From-SNS-Topic-Project
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 'sqs:SendMessage'
+            Resource: '*'
+            Condition:
+              ArnEquals:
+                'aws:SourceArn': !Ref TopicProject
+          - Sid: Allow-SendMessage-To-Both-Queues-From-SNS-Topic-ProjectUser
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 'sqs:SendMessage'
+            Resource: '*'
+            Condition:
+              ArnEquals:
+                'aws:SourceArn': !Ref TopicProjectUser
+      Queues:
+        - !Ref QueueStacc
+
+  # 企業情報提供用トピック名
+  TopicCompany:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      TopicName: !Ref TopicCompanyName
+      Subscription:
+        - Endpoint: !GetAtt
+              - QueueNet
+              - Arn
+          Protocol: sqs
+        - Endpoint: !GetAtt
+              - QueueStacc
+              - Arn
+          Protocol: sqs
+        - Endpoint: !GetAtt
+              - QueueSmartDocs
+              - Arn
+          Protocol: sqs
+
+  # 大成建設個別サービス企業利用状況提供用トピック名
+  TopicCompanytaiseiservices:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      TopicName: !Ref TopicCompanytaiSeiservicesName
+      Subscription:
+        - Endpoint: !GetAtt
+              - QueueNet
+              - Arn
+          Protocol: sqs
+
+  # ユーザ情報提供用トピック
+  TopicUser:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      TopicName: !Ref TopicUserName
+      Subscription:
+        - Endpoint: !GetAtt
+              - QueueNet
+              - Arn
+          Protocol: sqs
+        - Endpoint: !GetAtt
+              - QueueStacc
+              - Arn
+          Protocol: sqs
+        - Endpoint: !GetAtt
+              - QueueSmartDocs
+              - Arn
+          Protocol: sqs
+
+  # ユーザ情報提供（ユーザがどのサービスを利用するか）用トピック名
+  TopicAccesspoint:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      TopicName: !Ref TopicAccesspointName
+      Subscription:
+        - Endpoint: !GetAtt
+              - QueueNet
+              - Arn
+          Protocol: sqs
+
+  # 支店情報提供用トピック
+  TopicBranch:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      TopicName: !Ref TopicBranchName
+      Subscription:
+        - Endpoint: !GetAtt
+              - QueueStacc
+              - Arn
+          Protocol: sqs
+
+  # オーナー登録企業情報提供用トピック
+  TopicPartnercompany:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      TopicName: !Ref TopicPartnerCompanyName
+
+  # 従業員情報提供用トピック
+  TopicWorker:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      TopicName: !Ref TopicWorkerName
+      Subscription:
+        - Endpoint: !GetAtt
+              - QueueStacc
+              - Arn
+          Protocol: sqs
+
+  # プロジェクト情報提供用トピック
+  TopicProject:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      TopicName: !Ref TopicProjectName
+      Subscription:
+        - Endpoint: !GetAtt
+              - QueueStacc
+              - Arn
+          Protocol: sqs
+        - Endpoint: !GetAtt
+              - QueueSmartDocs
+              - Arn
+          Protocol: sqs
+
+  # 元請招待ユーザ提供用トピック
+  TopicProjectUser:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      TopicName: !Ref TopicProjectUserName
+      Subscription:
+        - Endpoint: !GetAtt
+              - QueueStacc
+              - Arn
+          Protocol: sqs
+        - Endpoint:
+            'Fn::GetAtt':
+              - QueueSmartDocs
+              - Arn
+          Protocol: sqs
+
+  # 一次請企業情報提供用トピック
+  TopicProjectPartner:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      TopicName: !Ref TopicProjectPartnerName
+      Subscription:
+        - Endpoint: !GetAtt
+              - QueueSmartDocs
+              - Arn
+          Protocol: sqs
+
+  # 編成、作業員名簿提供用トピック
+  TopicGreenfiles:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      TopicName: !Ref TopicGreenfileName
+      Subscription:
+        - Endpoint: !GetAtt
+              - QueueStacc
+              - Arn
+          Protocol: sqs
+
+#################################### output sns topic arn
+Outputs:
+  TopicAccesspointARN:
+    Description: t4_sns_topic_accesspoint ARN
+    Value: !Ref TopicAccesspoint
+  TopicBranchARN:
+    Description: t4_sns_topic_accesspoint ARN
+    Value: !Ref TopicBranch
+  TopicCompanyARN:
+    Description: t4_sns_topic_company ARN
+    Value: !Ref TopicCompany
+  TopicCompanytaiseiservicesARN:
+    Description: t4_sns_topic_companytaiseiservices ARN
+    Value: !Ref TopicCompanytaiseiservices
+  TopicProjectPartnerARN:
+    Description: t4_sns_topic_firstcompany ARN
+    Value: !Ref TopicProjectPartner
+  TopicGreenfilesARN:
+    Description: t4_sns_topic_greenfiles ARN
+    Value: !Ref TopicGreenfiles
+  TopicPartnercompanyARN:
+    Description: t4_sns_topic_partnercompany ARN
+    Value: !Ref TopicPartnercompany
+  TopicProjectARN:
+    Description: t4_sns_topic_project ARN
+    Value: !Ref TopicProject
+  TopicProjectUserARN:
+    Description: t4_sns_topic_projectstaff ARN
+    Value: !Ref TopicProjectUser
+  TopicUserARN:
+    Description: t4_sns_topic_user ARN
+    Value: !Ref TopicUser
+  TopicWorkerARN:
+    Description: t4_sns_topic_worker ARN
+    Value: !Ref TopicWorker
+#################################### EOF
