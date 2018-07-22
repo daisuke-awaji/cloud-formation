@@ -1,0 +1,12 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      # Amazon Linux AMI-ID
+      ImageId: ami-97785bed
+      InstanceType: t2.medium
+      Tags:
+        - Key: Name
+          Value: Nginx-Server
